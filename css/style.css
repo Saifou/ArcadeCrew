@@ -242,6 +242,9 @@ img{
   text-transform:uppercase;
 }
 
+
+
+
 /* MEDIA QUERIES */
 @media(max-width:800px){
   #showcase h1{
@@ -253,4 +256,6 @@ img{
   #showcase .showcase-content{
     padding:40px 10px;
   }
+   
 }
+
