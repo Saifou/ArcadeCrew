@@ -56,7 +56,7 @@ var Synth, AudioSynth, AudioSynthInstrument;
 				var noteList = {};
 				for(var k in this._notes) {
 					noteList[k] = {};
-				} 
+				}
 				octaveList.push(noteList);
 			}
 			f.push(octaveList);
@@ -100,18 +100,18 @@ var Synth, AudioSynth, AudioSynthInstrument;
 			var val = 0;
 			var curVol = 0;
 
-			for (var i = 0; i < (sampleRate * time); i++) {	
+			for (var i = 0; i < (sampleRate * time); i++) {
 				if(i<=sampleRate*attack) {
 					curVol = volume * (i/(sampleRate*attack));
 				} else {
 					curVol = volume * Math.pow((1-((i-(sampleRate*attack))/(sampleRate*(time-attack)))),dampen);
 				}
-		
+
 				val = curVol * Math.min(Math.max(wave(i, sampleRate, frequency, volume), -1), 1);
 				val = String.fromCharCode(val&255, (val>>>8)&255);
 				data.push(val);
 			}
-	
+
 			data = data.join('');
 
 			// Format sub-chunk
@@ -138,7 +138,7 @@ var Synth, AudioSynth, AudioSynthInstrument;
 				'WAVE'
 			].join('');
 			var out = [header, chunk1, chunk2].join('');
-			var dataURI = 'data:audio/wav;base64,' + escape(window.btoa(out)); 
+			var dataURI = 'data:audio/wav;base64,' + escape(window.btoa(out));
 			this._fileCache[sound][octave-1][note][time] = dataURI;
 			if(this._debug) { console.log((new Date).valueOf() - t, 'ms to generate'); }
 			return dataURI;
@@ -265,7 +265,7 @@ Synth.loadSoundProfile({
 		vars.valueTable = !vars.valueTable?[]:vars.valueTable;
 		if(typeof(vars.playVal)=='undefined') { vars.playVal = 0; }
 		if(typeof(vars.periodCount)=='undefined') { vars.periodCount = 0; }
-	
+
 		var valueTable = vars.valueTable;
 		var playVal = vars.playVal;
 		var periodCount = vars.periodCount;
@@ -276,33 +276,33 @@ Synth.loadSoundProfile({
 		var resetPlay = false;
 
 		if(valueTable.length<=Math.ceil(period)) {
-	
+
 			valueTable.push(Math.round(Math.random())*2-1);
-	
+
 			return valueTable[valueTable.length-1];
-	
+
 		} else {
-	
+
 			valueTable[playVal] = (valueTable[playVal>=(valueTable.length-1)?0:playVal+1] + valueTable[playVal]) * 0.5;
-	
+
 			if(playVal>=Math.floor(period)) {
 				if(playVal<Math.ceil(period)) {
 					if((periodCount%100)>=p_hundredth) {
 						// Reset
 						resetPlay = true;
 						valueTable[playVal+1] = (valueTable[0] + valueTable[playVal+1]) * 0.5;
-						vars.periodCount++;	
+						vars.periodCount++;
 					}
 				} else {
-					resetPlay = true;	
+					resetPlay = true;
 				}
 			}
-	
+
 			var _return = valueTable[playVal];
 			if(resetPlay) { vars.playVal = 0; } else { vars.playVal++; }
-	
+
 			return _return;
-	
+
 		}
 	}
 },

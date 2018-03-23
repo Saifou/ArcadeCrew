@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Pong</title>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ArcadeCrew</title>
+    <link rel="stylesheet" href="css/flexboxgrid.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <!--HEADER-->
+    <header id="main-header">
+      <div class="container">
+        <div class="row end-sm end-md end-lg middle-xs middle-sm middle-md middle-lg">
+          <div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+            <h1><span class="primary-text">Arcade</span>Crew</h1>
+          </div>
+          <div class="col-xs-12 col-sm-10 col-md-10 col-lg-10">
+            <nav id="navbar">
+              <ul>
+                <li><a href="indexClone.html">Accueil</a></li>
+                <li><a href="snake.html">Snake</a></li>
+								<li class="current"><a href="pong.html">PongGame</a></li>
+                <li><a href="PianoGame.html">PianoGame</a></li>
+                <li><a href="apropos.html">à propos</a></li>
+                <li><a href="FContact.php">Contact</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+	<!-- Basic styling, centering the canvas -->
+
+ </header>
+<body>
+<Section>
+	<div class="container">
+		<div class="row center-xs center-sm center-md center-lg middle-xs middle-sm middle-md middle-lg">
+			<div class="col-xs-12 col-sm-12 col-mid-12 col-lg-12 showcase-content">
+				<h1><span class="primary-text">Pong</span> Game </h1>
+<script>
+var
+/**
+ * Definition des variables
+ */
+WIDTH  = 700,
+HEIGHT = 600,
+pi = Math.PI,
+UpArrow   = 38,
+DownArrow = 40,
+/**
+ * elements de jeu
+ */
+canvas,
+ctx,
+keystate,
+/**
+ la raquette player
+ *
+ * @type {Object}
+ */
+player = {
+	x: null,
+	y: null,
+	width:  20,
+	height: 100,
+	/**
+	 * mise à jour des positions par pression de touches clavier
+	 */
+	update: function() {
+		if (keystate[UpArrow]) this.y -= 7;
+		if (keystate[DownArrow]) this.y += 7;
+		// keep the paddle inside of the canvas
+		this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
+	},
+	/**
+	 * Le dessin raquette player
+	 	 */
+	draw: function() {
+		ctx.fillRect(this.x, this.y, this.width, this.height);
+	}
+},
+/**
+ * la raquette AI
+ *
+ * @type {Object}
+ */
+ai = {
+	x: null,
+	y: null,
+	width:  20,
+	height: 100,
+	/**
+	 * Positionnement du la balle
+	 */
+	update: function() {
+		// calculate ideal position
+		var desty = ball.y - (this.height - ball.side)*0.5;
+		// ease the movement towards the ideal position
+		this.y += (desty - this.y) * 0.1;
+		// keep the paddle inside of the canvas
+		this.y = Math.max(Math.min(this.y, HEIGHT - this.height), 0);
+	},
+	/**
+	 * dessin raquette AI
+	 */
+	draw: function() {
+		ctx.fillRect(this.x, this.y, this.width, this.height);
+	}
+},
+/**
+ * The ball object
+ *
+ * @type {Object}
+ */
+ball = {
+	x:   null,
+	y:   null,
+	vel: null,
+	side:  20,
+	speed: 12,
+	/**
+	 * Service en fonction du coté
+	 *
+	 * @param  {number} side 1 right
+	 *                       -1 left
+	 */
+	serve: function(side) {
+		// Calcul des position x et y
+		var r = Math.random();
+		this.x = side===1 ? player.x+player.width : ai.x - this.side;
+		this.y = (HEIGHT - this.side)*r;
+		// Gestion de l'angle 45°
+
+		var phi = 0.1*pi*(1 - 2*r);
+		// Vitesse et amplitude
+		this.vel = {
+			x: side*this.speed*Math.cos(phi),
+			y: this.speed*Math.sin(phi)
+		}
+	},
+	/**
+	 *
+	 */
+	update: function() {
+		// position et vitesse
+		this.x += this.vel.x;
+		this.y += this.vel.y;
+		// verification de la sortie par le Y
+		if (0 > this.y || this.y+this.side > HEIGHT) {
+
+			var offset = this.vel.y < 0 ? 0 - this.y : HEIGHT - (this.y+this.side);
+			this.y += 2*offset;
+			// Rebond
+			this.vel.y *= -1;
+		}
+		// verification position de la balle intersection avec la raquette pour rebond
+
+		var AABBIntersect = function(ax, ay, aw, ah, bx, by, bw, bh) {
+			return ax < bx+bw && ay < by+bh && bx < ax+aw && by < ay+ah;
+		};
+		// Rebond sur l'axe des x
+		// direction
+		var pdle = this.vel.x < 0 ? player : ai;
+		if (AABBIntersect(pdle.x, pdle.y, pdle.width, pdle.height,
+				this.x, this.y, this.side, this.side)
+		) {
+			// calcul de la reflection sur l'axe des x
+			this.x = pdle===player ? player.x+player.width : ai.x - this.side;
+			var n = (this.y+this.side - pdle.y)/(pdle.height+this.side);
+			var phi = 0.25*pi*(2*n - 1); // pi/4 = 45
+			// calcul collision et changement de vitesse
+			var smash = Math.abs(phi) > 0.2*pi ? 1.5 : 1;
+			this.vel.x = smash*(pdle===player ? 1 : -1)*this.speed*Math.cos(phi);
+			this.vel.y = smash*this.speed*Math.sin(phi);
+		}
+		// reset de la ball une fois sorti du canvas par laxe des X
+
+		if (0 > this.x+this.side || this.x > WIDTH) {
+			this.serve(pdle===player ? 1 : -1);
+		}
+	},
+	/**
+	 * dessin de la balle
+	 */
+	draw: function() {
+		ctx.fillRect(this.x, this.y, this.side, this.side);
+	}
+};
+/**
+ * demarrage du jeu
+ */
+function main() {
+	// creation et initiation du terrain
+	canvas = document.createElement("canvas");
+	canvas.width = WIDTH;
+	canvas.height = HEIGHT;
+	ctx = canvas.getContext("2d");
+	document.body.appendChild(canvas);
+	keystate = {};
+	// suivi des pression du clavier pour interpretation
+	document.addEventListener("keydown", function(evt) {
+		keystate[evt.keyCode] = true;
+	});
+	document.addEventListener("keyup", function(evt) {
+		delete keystate[evt.keyCode];
+	});
+	init(); // initiationn des elements
+	// Boucle du jeu
+	var loop = function() {
+		update();
+		draw();
+		window.requestAnimationFrame(loop, canvas);
+	};
+	window.requestAnimationFrame(loop, canvas);
+}
+/**
+ * Initatite game objects and set start positions
+ */
+function init() {
+	player.x = player.width;
+	player.y = (HEIGHT - player.height)/2;
+	ai.x = WIDTH - (player.width + ai.width);
+	ai.y = (HEIGHT - ai.height)/2;
+	ball.serve(1);
+}
+/**
+ * mise à jour de tous les elements
+ */
+function update() {
+	ball.update();
+	player.update();
+	ai.update();
+}
+/**
+ * reset canvas
+ */
+function draw() {
+	ctx.fillRect(0, 0, WIDTH, HEIGHT);
+	ctx.save();
+	ctx.fillStyle = "#fff";
+	ball.draw();
+	player.draw();
+	ai.draw();
+
+	var w = 4;
+	var x = (WIDTH - w)*0.5;
+	var y = 0;
+	var step = HEIGHT/20;
+	while (y < HEIGHT) {
+		ctx.fillRect(x, y+step*0.25, w, step*0.5);
+		y += step;
+	}
+	ctx.restore();
+}
+// demarre le jeu
+main();
+</script>
+		</div>
+	</div>
+</div>
+</section>
+<!--COMPANY-->
+<section id="company">
+	<div class="container">
+		<div class="row">
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<h4>Contactez-nous!</h4>
+				<ul>
+					<li><i class="fa fa-phone"></i>0619579209</li>
+					<li><i class="fa fa-envelope"></i>ejjilali.saif@gmail.com</li>
+					<li><i class="fa fa-map"></i>4 rue des hubles 95280 jouy le moutier</li>
+				</ul>
+			</div>
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<h4>à propos</h4>
+				<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit,qscfqdqsdcsd           bkcjvbsdc,sndbc ,nsc s;bcs;vbsjk:dvbqk:jvhk!dfqjvbd;vdq</p>
+			</div>
+			<div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+				<h4>Newsletter</h4>
+				<p>Lorem ipsum dolor sit amet</p>
+				<form>
+					<input type="text" name="email" placeholder="Entrez Email">
+					<button type="submit" name="button">envoyer</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!--FOOTER-->
+<footer id="main-footer">
+	<div class="container">
+		<div class="row center-xs center-sm center-md center-lg ">
+			<div class="col-xs-12 col-sm-12 col-mid-12 col-lg-12">
+				<p>Copyright &copy; 2018 | ArcadeCrew</p>
+			</div>
+		</div>
+	</div>
+</footer>
+</body>
+</html>
